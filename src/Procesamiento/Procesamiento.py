@@ -12,10 +12,11 @@ from os.path import expanduser
 
 class Procesador:
     
-    def __init__(self, listaDirectorios , listaClases , listFiltros, w=32 , h=32 , dirDestino = None , nombreCSV='CSV_TRAIN'):
+    def __init__(self, listaDirectorios , listaClases , listFiltros=None , modo=None , w=32 , h=32 , dirDestino = None , nombreCSV='CSV_TRAIN'):
         self.listaDirectorios = listaDirectorios
         self.listaClases = listaClases
         self.listaFiltros = listFiltros
+        self.modo = modo
         self.width  = w 
         self.height = h
         self.homeDir = expanduser("~")
@@ -97,7 +98,10 @@ class Procesador:
                     print listaClases[indxElmGrup],'>>',rutaImg
                     imagen = self.getImagenPIL(rutaImg)
                     imagen = self.redimensionarIMG(self.width, self.height, imagen)
-                    imagen = self.aplicarFiltros(imagen, self.listaFiltros)
+                    if(self.listaFiltros):
+                        imagen = self.aplicarFiltros(imagen, self.listaFiltros)
+                    if(self.modo):
+                        imagen = self.cambiarModo(imagen, self.modo)
                     self.guardarImagen(self.dirDestino, imagen, numImagen)
                     self.escribirCSV(listaClases[indxElmGrup])
                     numImagen +=1
@@ -119,6 +123,7 @@ class Procesador:
     #Redimensiona la @imagen al tamanio indicado
     def redimensionarIMG(self,w,h,imagen):
         imagen = imagen.resize((w, h),Image.ANTIALIAS)
+        #imagen = imagen.resize((w, h))
         return imagen
     
     #Aplica a la imagen todos los filtros contenidos en @listaFiltros
@@ -130,6 +135,13 @@ class Procesador:
             print 'Error en aplicacion de filtros'
         return imagen
     
+    #Cambia el modo de color de la Imagen. Por ejemplo: RGB -> L(grayScale), RGB -> 1 (black and white)
+    def cambiarModo(self,imagen,modo):
+        try:
+            imagen = imagen.convert(modo)
+        except Exception as e:
+            print "Error al cambiar modo de imagen. Modo: ",modo, " Modo actual: ",imagen.mode
+        return imagen
     
     def guardarImagen(self, dirDestino, imagen, nombre):
         try:
@@ -140,10 +152,12 @@ class Procesador:
     
 rutas = ['C:\Users\Isaac\Desktop\gatos','C:\Users\Isaac\Desktop\camaleones','C:\Users\Isaac\Desktop\dogs']
 clases  = ['gatos','camaleones','dogs']
-listaFiltros = [ImageFilter.BLUR]
+#listaFiltros = [ImageFilter.BLUR]
 #listaFiltros.append(ImageFilter.CONTOUR)
+listaFiltros = []
 destino = 'C:\Users\Isaac\Desktop\Otro\\'
-proceso = Procesador(rutas,clases,listaFiltros,32, 32, destino, 'Ent1.csv')
+modo = None
+proceso = Procesador(rutas,clases,listaFiltros,modo,32, 32, destino, 'Ent1.csv')
 proceso.RUN()
 
 
