@@ -7,28 +7,30 @@ import os
 import numpy
 import Image
 import ImageFilter
+import traceback
 from os.path import expanduser
 
 class Procesador:
     
-    def __init__(self, listaDirectorios , listaClases , w=32 , h=32 , dirDestino = None , nombreCSV='CSV_TRAIN', listFiltros):
+    def __init__(self, listaDirectorios , listaClases , listFiltros, w=32 , h=32 , dirDestino = None , nombreCSV='CSV_TRAIN'):
         self.listaDirectorios = listaDirectorios
         self.listaClases = listaClases
+        self.listaFiltros = listFiltros
         self.width  = w 
         self.height = h
         self.homeDir = expanduser("~")
         self.dirDestino = dirDestino or (self.homeDir + '\\TRAIN\\')
         self.nombreCSV = nombreCSV
         self.CSV = None
-        self.listaFiltros = listFiltros
-    
         
+    
     def RUN(self):
         print 'Comenzando Proceso...'
         self.crearDirectorio(self.dirDestino)
         self.crearCSV(self.nombreCSV)
         gruposIMG = self.getZIPListasDeRutas(self.listaDirectorios)
         self.mezclarDirectorios(gruposIMG, self.listaClases)
+        self.cerrarCSV()
         print 'Fin de procesamiento'
         
     
@@ -44,10 +46,22 @@ class Procesador:
     
     def crearCSV(self, nombreCSV):
         try:
-            self.CSV = open(self.dirDestino+nombreCSV)
-        except IOError:
-            print 'No fue posible crear el archivo CSV'
+            self.CSV = open(self.dirDestino+nombreCSV , "w")
+        except IOError as io:
+            print 'No fue posible crear el archivo CSV: ', io.message
         
+    def escribirCSV(self,etiqueta):
+        try:
+            self.CSV.write(etiqueta+'\n')
+        except Exception as e:
+            print 'Error al intentar escribir en CSV' , e.message
+        
+    
+    def cerrarCSV(self):
+        try:
+            self.CSV.close()
+        except Exception as e:
+            print 'Error al intentar cerrar CSV', e.message
     
     
     #Genera una lista A que contiene listas Bi, donde Bi es una lista con todas las rutas de las imagenes que corresponden a una clase.
@@ -59,7 +73,7 @@ class Procesador:
             listaIMG = []
             for img in os.listdir(directorio):
                 if(img.endswith("png") or img.endswith("jpg") or img.endswith("JPG") or img.endswith("PNG") or img.endswith("JPEG") or img.endswith("jpeg") ):
-                    listaIMG.append(img)
+                    listaIMG.append(directorio+os.path.sep+img)
             gruposIMG.append(listaIMG)
         return gruposIMG
           
@@ -73,31 +87,33 @@ class Procesador:
         while(gruposIMG): #mientras haya grupos en la lista
             try:
                 indxElmGrup = numpy.random.randint(0,numGrupos, size=None)
-            except:
-                print 'Error en Generador Aleatorio'
-            try:
-                rutaImg = gruposIMG[indxElmGrup].pop()
-                print listaClases[indxElmGrup],'>>',rutaImg
-                imagen = self.getImagenPIL(rutaImg)
-                imagen = self.redimensionarIMG(self.w, self.h, imagen)
-                imagen = self.aplicarFiltros(imagen, self.listaFiltros)
-                self.guardarImagen(self.dirDestino, imagen, numImagen.__str__())
-                
                 if(not gruposIMG[indxElmGrup]): # si ya no hay elementos en el grupo
-                    gruposIMG.pop(indxElmGrup)  # eliminar espacio de grupo de la lista de grupos
-                    listaClases.pop(indxElmGrup)# eliminar clase de lista de clases
-                    numGrupos -=1               # actualizar tamanio de grupo
-            except:
-                print 'Error en operaciones con listas'
-            numImagen +=1
+                    if(gruposIMG): # si hay elementos en lista de grupos
+                        gruposIMG.pop(indxElmGrup)  # eliminar espacio de grupo de la lista de grupos
+                        listaClases.pop(indxElmGrup)# eliminar clase de lista de clases
+                        numGrupos -=1               # actualizar tamanio de grupo
+                else:
+                    rutaImg = gruposIMG[indxElmGrup].pop()
+                    print listaClases[indxElmGrup],'>>',rutaImg
+                    imagen = self.getImagenPIL(rutaImg)
+                    imagen = self.redimensionarIMG(self.width, self.height, imagen)
+                    imagen = self.aplicarFiltros(imagen, self.listaFiltros)
+                    self.guardarImagen(self.dirDestino, imagen, numImagen)
+                    self.escribirCSV(listaClases[indxElmGrup])
+                    numImagen +=1
+            except Exception as e:
+                print 'Error en operaciones con listas: ',e.message
+                traceback.print_exc()
      
     
     #Carga una imagen en memoria con PIL
     def getImagenPIL(self,ruta):
+        im = None
         try:
+            print 'Abriendo: ', ruta
             im = Image.open(ruta)
-        except IOError:
-            pass
+        except Exception as e:
+            print e.message
         return im
     
     #Redimensiona la @imagen al tamanio indicado
@@ -107,25 +123,28 @@ class Procesador:
     
     #Aplica a la imagen todos los filtros contenidos en @listaFiltros
     def aplicarFiltros(self,imagen,listaFiltros):
-        for filtro in listaFiltros:
-            imagen = imagen.filter(filtro)
+        try:
+            for filtro in listaFiltros:
+                imagen = imagen.filter(filtro)
+        except Exception as e:
+            print 'Error en aplicacion de filtros'
         return imagen
     
     
     def guardarImagen(self, dirDestino, imagen, nombre):
         try:
-            imagen.save(dirDestino+nombre, "JPEG")
+            imagen.save(dirDestino+str(nombre)+".png", "PNG")
         except IOError:
             print 'ERROR: No fue posible crear la imagen'
         
     
 rutas = ['C:\Users\Isaac\Desktop\gatos','C:\Users\Isaac\Desktop\camaleones','C:\Users\Isaac\Desktop\dogs']
 clases  = ['gatos','camaleones','dogs']
-listaFiltros = [ImageFilter.BLUR, ImageFilter.SHARPEN]
-listaFiltros.append(ImageFilter.CONTOUR)
+listaFiltros = [ImageFilter.BLUR]
+#listaFiltros.append(ImageFilter.CONTOUR)
 destino = 'C:\Users\Isaac\Desktop\Otro\\'
-
-proceso = Procesador(rutas, 32, 32, destino, 'Ent1')
+proceso = Procesador(rutas,clases,listaFiltros,32, 32, destino, 'Ent1.csv')
+proceso.RUN()
 
 
 
