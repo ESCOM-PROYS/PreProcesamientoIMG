@@ -12,7 +12,10 @@ from os.path import expanduser
 
 class Procesador:
     
-    def __init__(self, listaDirectorios , listaClases , listFiltros=None , modo=None , w=32 , h=32 , dirDestino = None , nombreCSV='CSV_TRAIN'):
+    def __init__(self, listaDirectorios , listaClases , 
+                 listFiltros=None , modo=None , w=32 , h=32 , 
+                 dirDestino = None , nombreCSV='CSV_TRAIN'):
+        
         self.listaDirectorios = listaDirectorios
         self.listaClases = listaClases
         self.listaFiltros = listFiltros
@@ -133,6 +136,7 @@ class Procesador:
                 imagen = imagen.filter(filtro)
         except Exception as e:
             print 'Error en aplicacion de filtros'
+            raise e;
         return imagen
     
     #Cambia el modo de color de la Imagen. Por ejemplo: RGB -> L(grayScale), RGB -> 1 (black and white)
@@ -141,6 +145,7 @@ class Procesador:
             imagen = imagen.convert(modo)
         except Exception as e:
             print "Error al cambiar modo de imagen. Modo: ",modo, " Modo actual: ",imagen.mode
+            raise e
         return imagen
     
     def guardarImagen(self, dirDestino, imagen, nombre):
