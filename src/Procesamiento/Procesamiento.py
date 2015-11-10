@@ -27,7 +27,7 @@ class Procesador:
         self.nombreCSV = nombreCSV
         self.CSV = None
         
-    
+      
     def RUN(self):
         print 'Comenzando Proceso...'
         self.crearDirectorio(self.dirDestino)
@@ -153,7 +153,9 @@ class Procesador:
             imagen.save(dirDestino+str(nombre)+".png", "PNG")
         except IOError:
             print 'ERROR: No fue posible crear la imagen'
-        
+    
+    #Aplica todos los filtros diponibles de PIL en una imagen
+   
     
 rutas = ['C:\Users\Isaac\Desktop\gatos','C:\Users\Isaac\Desktop\camaleones','C:\Users\Isaac\Desktop\dogs']
 clases  = ['gatos','camaleones','dogs']
