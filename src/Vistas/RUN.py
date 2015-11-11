@@ -11,7 +11,7 @@ import Tkinter as tk
 from Tkinter import *    
 import Tkconstants, tkFileDialog
 import os
-
+import ImageFilter
 
 ########################################################################
 class Principal(tk.Frame):
@@ -23,10 +23,11 @@ class Principal(tk.Frame):
         tk.Frame.__init__(self, master, *args, **kw)
         self.padre = master
         self.padre.geometry('700x600+10+10')
+        #--------------------------------------------
         self.listaDirectorios = []
         self.listaDeClases = []
+        self.FILTROS = [ImageFilter.BLUR,ImageFilter.CONTOUR,ImageFilter.DETAIL,ImageFilter.EDGE_ENHANCE,ImageFilter.EDGE_ENHANCE_MORE,ImageFilter.EMBOSS,ImageFilter.FIND_EDGES,ImageFilter.SMOOTH,ImageFilter.SMOOTH_MORE,ImageFilter.SHARPEN]
         self.initUI()
-        self.listaActiva = 0
 
     #-------------------------------------------------------------------------------
     def initUI(self):
@@ -37,12 +38,17 @@ class Principal(tk.Frame):
         frmPARAM  = ttk.Labelframe(frmGRAL, text = "PARAMETROS")
         frmRUTAS  = ttk.Labelframe(frmEstado, text = "LISTA DE RUTAS")
         frmCLASES = ttk.Labelframe(frmEstado, text = "LISTA DE CLASES")
+        frmFILTROS = ttk.Labelframe(frmPARAM, text = "Filtros")
+        frmESCCOL = ttk.Labelframe(frmPARAM, text = "Escala y modo de color")
         
         frmGRAL.pack  (fill = tk.BOTH, side = tk.TOP, expand= tk.TRUE)
         frmEstado.pack(fill = tk.BOTH, side = tk.RIGHT, expand = tk.TRUE, padx = 5)
         frmPARAM.pack (fill = tk.BOTH, side = tk.LEFT, expand = tk.TRUE, padx = 5)
         frmRUTAS.pack (fill = tk.BOTH, side = tk.TOP, expand = tk.TRUE, padx = 5)
         frmCLASES.pack(fill = tk.BOTH, side = tk.BOTTOM, expand= tk.TRUE,padx = 5)
+        frmESCCOL.pack(fill  = tk.BOTH, side = tk.BOTTOM, expand= tk.TRUE,padx = 5)
+        frmFILTROS.pack(fill = tk.BOTH, side = tk.BOTTOM, expand= tk.TRUE,padx = 5)
+        
         # BUTTONS -------------------------------------------------------     
         button_opt = {'fill': Tkconstants.BOTH, 'padx': 5, 'pady': 5}  
         ttk.Button(frmPARAM,  text='Agregar Nuevo Directorio de Clases', command=self.agregarDirectorioClase).pack(**button_opt)
@@ -61,6 +67,9 @@ class Principal(tk.Frame):
         self.packScrollBars(scrollbarxC,scrollbaryC)
         self.listaClasesGUI.pack(side=LEFT, fill=BOTH, expand=1)
         
+        self.listaFiltrosGUI = tk.Listbox(frmFILTROS,selectmode=EXTENDED,yscrollcommand=scrollbaryC.set,xscrollcommand=scrollbarxC.set)
+        self.listaFiltrosGUI.pack(side=LEFT, fill=BOTH, expand=1)
+        self.llenarListaFiltros(self.listaFiltrosGUI)
         
     #-------------------------------------------------------------------------------------------------------------------
     
@@ -69,8 +78,7 @@ class Principal(tk.Frame):
         opciones['parent'] = self
         opciones['title'] = 'Elija un directorio de Clase'
         directorio = tkFileDialog.askdirectory(**self.optDialogoDir)
-        print directorio.name
-        self.cargarInfoDirectorio(directorio.name)
+        self.cargarInfoDirectorio(directorio)
     
     
     def agregarArchivoClase(self):
@@ -91,7 +99,7 @@ class Principal(tk.Frame):
             if(clase): #La clase siempre se inserta en la lista de clases, pero en la lista de la GUI sólo se muestra una vez
                 self.listaClasesGUI.insert(END,clase)
     
-
+    
     def cargarRutasDesdeArchivo(self, archivo):
         with open(archivo) as archivoClases:
             rutas = archivoClases.readlines()
@@ -110,6 +118,11 @@ class Principal(tk.Frame):
             mostrarEnLista = clase
         self.listaDeClases.append(clase) # La clase Simepre se agrega a la lista @self.listaDeClases
         return mostrarEnLista
+    
+    def llenarListaFiltros(self,listaGUI):
+        for filtro in self.FILTROS:
+            self.listaFiltrosGUI.insert(END,filtro.name)
+            
     
     
     def getScrollBars(self,frameToStroll):
