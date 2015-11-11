@@ -23,6 +23,7 @@ class Principal(tk.Frame):
         self.padre = master
         self.padre.geometry('700x600+10+10')
         self.listaDirectorios = []
+        self.listaDeClases = []
         self.initUI()
 
     #-------------------------------------------------------------------------------
@@ -37,7 +38,8 @@ class Principal(tk.Frame):
         frmCenterEste = ttk.Labelframe(frmCenter, text = "LISTA DE RUTAS")
         frmCenterEste.pack(fill = tk.BOTH, side = tk.LEFT, expand = tk.TRUE, padx = 5)
         frmCenter.pack(fill = tk.BOTH, side = tk.TOP, expand= tk.TRUE)
-        
+        frmCenterEsteBot = ttk.Labelframe(frmCenterEste, text = "LISTA DE CLASES")
+        frmCenterEsteBot.pack(fill = tk.BOTH, side = tk.BOTTOM, expand= tk.TRUE)        
         ttk.Button(frmCenterOeste, text='Agregar Nuevo Directorio de Clases', command=self.agregarDirectorioClase).pack(**button_opt)
         ttk.Button(frmCenterOeste, text='Agregar Nuevo Archivo de Clases', command=self.agregarArchivoClase).pack(**button_opt)
         
@@ -54,7 +56,6 @@ class Principal(tk.Frame):
     
     def agregarDirectorioClase(self):
         self.optDialogoDir = opciones = {}
-        opciones['initialdir'] = '/home/ivan/Escritorio/'
         opciones['parent'] = self
         opciones['title'] = 'Elija un directorio de Clase'
         directorio = tkFileDialog.askdirectory(**self.optDialogoDir)
@@ -66,12 +67,12 @@ class Principal(tk.Frame):
     def agregarArchivoClase(self):
         self.optDialogoDir = opciones = {}
         opciones['parent'] = self
-        opciones['title'] = 'Elija un archivo de rutas'
+        opciones['title'] = 'Elija un Archivo de Rutas'
         archivo = tkFileDialog.askopenfile(**self.optDialogoDir)
         if(archivo != ''):
             print archivo.name
-            self.cargarRutasDesdeArchivo(archivo)
-            
+            self.cargarRutasDesdeArchivo(archivo.name)
+
                 
     def cargarDirectorio(self, elemento):
         if(elemento not in self.listaDirectorios):
@@ -81,11 +82,16 @@ class Principal(tk.Frame):
 
     def cargarRutasDesdeArchivo(self, archivo):
         with open(archivo) as archivoClases:
-            lines = archivoClases.readlines()
-        
-    
+            rutas = archivoClases.readlines()
+            for ruta in rutas:
+                if(ruta!='' and ruta!='\n'):
+                    self.cargarDirectorio(ruta)
+        archivoClases.close()       
+
+
     def yview(self, *args):
         apply(self.listaRutasGUI.yview, args)
+
     
     def xview(self, *args):
         apply(self.listaRutasGUI.xview, args)
