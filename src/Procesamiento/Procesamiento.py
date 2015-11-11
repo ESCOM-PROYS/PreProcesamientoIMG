@@ -157,8 +157,8 @@ class Procesador:
     #Aplica todos los filtros diponibles de PIL en una imagen
    
     
-rutas = ['C:\Users\Isaac\Desktop\gatos','C:\Users\Isaac\Desktop\camaleones','C:\Users\Isaac\Desktop\dogs']
-clases  = ['gatos','camaleones','dogs']
+rutas = ['C:\Users\Isaac\Desktop\perros','C:\Users\Isaac\Desktop\spiderman']
+clases  = ['perros','spiderman']
 #listaFiltros = [ImageFilter.BLUR]
 #listaFiltros.append(ImageFilter.CONTOUR)
 listaFiltros = []
