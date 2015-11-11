@@ -27,26 +27,9 @@ class Principal(tk.Frame):
 
     #-------------------------------------------------------------------------------
     def initUI(self):
-        '''
-        Crea y empaqueta todos low widgets de la ventana
-        '''
         self.padre.title("PRPEPROCESAMIENTO")
-        '''
-        frmHeader = ttk.Frame(self.padre, relief = tk.RAISED)
-        frmHeader.pack(side = tk.TOP, fill = tk.X, expand = tk.TRUE)
-        frmNorte = ttk.Frame(self.padre)
-        frmNorteOeste  = ttk.Frame(frmNorte)        
-        frmNorteOeste.grid(column = 0, row = 0)
-        frmNorteEste = ttk.Frame(frmNorte)
-        frmNorteEste.grid(column = 1, row = 0)
-        frmNorte.grid_columnconfigure(0,weight = 1)
-        frmNorte.grid_columnconfigure(1,weight = 1)
-        frmNorte.pack(fill = tk.X, side=tk.TOP)
-        ttk.Separator(self.padre, orient = tk.HORIZONTAL).pack()
-        '''
-        
+
         button_opt = {'fill': Tkconstants.BOTH, 'padx': 5, 'pady': 5}
-        
         
         frmCenter = ttk.Frame(self.padre)
         frmCenterOeste = ttk.Labelframe(frmCenter, text = "PARAMETROS")
@@ -55,13 +38,16 @@ class Principal(tk.Frame):
         frmCenterEste.pack(fill = tk.BOTH, side = tk.LEFT, expand = tk.TRUE, padx = 5)
         frmCenter.pack(fill = tk.BOTH, side = tk.TOP, expand= tk.TRUE)
         
-        ttk.Button(frmCenterOeste, text='Seleccione el directorio que desea agregar.', command=self.agregarDirectorioClase).pack(**button_opt)
+        ttk.Button(frmCenterOeste, text='Agregar Nuevo Directorio de Clases', command=self.agregarDirectorioClase).pack(**button_opt)
+        ttk.Button(frmCenterOeste, text='Agregar Nuevo Archivo de Clases', command=self.agregarArchivoClase).pack(**button_opt)
         
         scrollbary = Scrollbar(frmCenterEste, orient=VERTICAL)
         scrollbarx = Scrollbar(frmCenterEste, orient=HORIZONTAL)
-        self.listaRutasGUI = tk.Listbox(frmCenterEste,selectmode=EXTENDED,yscrollcommand=scrollbary.set)
+        self.listaRutasGUI = tk.Listbox(frmCenterEste,selectmode=EXTENDED,yscrollcommand=scrollbary.set,xscrollcommand=scrollbarx.set)
         scrollbary.config(command=self.yview)
         scrollbary.pack(side=RIGHT, fill=Y)
+        scrollbarx.config(command=self.xview)
+        scrollbarx.pack(fill=X)
         self.listaRutasGUI.pack(side=LEFT, fill=BOTH, expand=1)
         
         
@@ -70,18 +56,39 @@ class Principal(tk.Frame):
         self.optDialogoDir = opciones = {}
         opciones['initialdir'] = '/home/ivan/Escritorio/'
         opciones['parent'] = self
-        opciones['title'] = 'Escoge un directorio con imagenes'
+        opciones['title'] = 'Elija un directorio de Clase'
         directorio = tkFileDialog.askdirectory(**self.optDialogoDir)
-        self.listaDirectorios.append(directorio)
-        self.insertarEnListaGUI(directorio)
+        if(directorio not in self.listaDirectorios and directorio != ''):
+            self.listaDirectorios.append(directorio)
+            self.cargarDirectorio(directorio)
     
     
-    def insertarEnListaGUI(self, elemento):
-        self.listaRutasGUI.insert(END, elemento)
+    def agregarArchivoClase(self):
+        self.optDialogoDir = opciones = {}
+        opciones['parent'] = self
+        opciones['title'] = 'Elija un archivo de rutas'
+        archivo = tkFileDialog.askopenfile(**self.optDialogoDir)
+        if(archivo != ''):
+            print archivo.name
+            self.cargarRutasDesdeArchivo(archivo)
+            
+                
+    def cargarDirectorio(self, elemento):
+        if(elemento not in self.listaDirectorios):
+            self.listaDirectorios.append(elemento)
+            self.listaRutasGUI.insert(END, elemento)
     
+
+    def cargarRutasDesdeArchivo(self, archivo):
+        with open(archivo) as archivoClases:
+            lines = archivoClases.readlines()
+        
     
     def yview(self, *args):
         apply(self.listaRutasGUI.yview, args)
+    
+    def xview(self, *args):
+        apply(self.listaRutasGUI.xview, args)
     
     
 ########################################################################        
