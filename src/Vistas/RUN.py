@@ -8,7 +8,7 @@ Created on 10/11/2015
 
 import ttk              
 import Tkinter as tk
-from Tkinter import *    
+from   Tkinter import *    
 import Tkconstants, tkFileDialog
 import os
 import ImageFilter
@@ -24,9 +24,12 @@ class Principal(tk.Frame):
         self.padre = master
         self.padre.geometry('700x600+10+10')
         #--------------------------------------------
+        self.width  = 0
+        self.height = 0
         self.listaDirectorios = []
         self.listaDeClases = []
         self.FILTROS = [ImageFilter.BLUR,ImageFilter.CONTOUR,ImageFilter.DETAIL,ImageFilter.EDGE_ENHANCE,ImageFilter.EDGE_ENHANCE_MORE,ImageFilter.EMBOSS,ImageFilter.FIND_EDGES,ImageFilter.SMOOTH,ImageFilter.SMOOTH_MORE,ImageFilter.SHARPEN]
+        self.listaFiltros = []
         self.initUI()
 
     #-------------------------------------------------------------------------------
@@ -35,25 +38,32 @@ class Principal(tk.Frame):
         #Frames ---------------------------------------------------------
         frmGRAL   = ttk.Frame(self.padre)
         frmEstado = ttk.Frame(frmGRAL)
-        frmPARAM  = ttk.Labelframe(frmGRAL, text = "PARAMETROS")
+        frmPARAM  = ttk.Labelframe(frmGRAL,   text = "PARAMETROS")
         frmRUTAS  = ttk.Labelframe(frmEstado, text = "LISTA DE RUTAS")
         frmCLASES = ttk.Labelframe(frmEstado, text = "LISTA DE CLASES")
         frmFILTROS = ttk.Labelframe(frmPARAM, text = "Filtros")
-        frmESCCOL = ttk.Labelframe(frmPARAM, text = "Escala y modo de color")
+        frmESCCOL = ttk.Labelframe(frmPARAM,  text = "Escala y modo de color")
+        frmDEST =   ttk.Labelframe(frmPARAM,  text = "Destino")
+        frmW = ttk.Frame(frmESCCOL)
+        frmH = ttk.Frame(frmESCCOL)
         
         frmGRAL.pack  (fill = tk.BOTH, side = tk.TOP, expand= tk.TRUE)
         frmEstado.pack(fill = tk.BOTH, side = tk.RIGHT, expand = tk.TRUE, padx = 5)
         frmPARAM.pack (fill = tk.BOTH, side = tk.LEFT, expand = tk.TRUE, padx = 5)
         frmRUTAS.pack (fill = tk.BOTH, side = tk.TOP, expand = tk.TRUE, padx = 5)
         frmCLASES.pack(fill = tk.BOTH, side = tk.BOTTOM, expand= tk.TRUE,padx = 5)
-        frmESCCOL.pack(fill  = tk.BOTH, side = tk.BOTTOM, expand= tk.TRUE,padx = 5)
+        frmESCCOL.pack(fill  = tk.BOTH, side = tk.BOTTOM, expand= tk.TRUE,padx = 5,pady = 10)
         frmFILTROS.pack(fill = tk.BOTH, side = tk.BOTTOM, expand= tk.TRUE,padx = 5)
+        frmW.pack(fill = tk.X,side=tk.TOP,expand=tk.TRUE,padx=5)
+        frmH.pack(fill = tk.X,side=tk.TOP,expand=tk.TRUE,padx=5)
+        frmDEST.pack(fill = tk.X, side=tk.BOTTOM, expand=tk.TRUE,padx=5)
         
         # BUTTONS -------------------------------------------------------     
         button_opt = {'fill': Tkconstants.BOTH, 'padx': 5, 'pady': 5}  
         ttk.Button(frmPARAM,  text='Agregar Nuevo Directorio de Clases', command=self.agregarDirectorioClase).pack(**button_opt)
         ttk.Button(frmPARAM,  text='Agregar Nuevo Archivo de Clases', command=self.agregarArchivoClase).pack(**button_opt)
-        ttk.Button(frmEstado, text='INICIAR PROCESAMIENTO',command=self.agregarArchivoClase).pack(**button_opt)
+        ttk.Button(frmEstado, text='INICIAR PROCESAMIENTO',command=self.RUN_PROCESO).pack(**button_opt)
+        ttk.Button(frmDEST, text='Ruta...',command=self.RUN_PROCESO).pack(side=RIGHT,fill=BOTH)
         
         scrollbarx,scrollbary = self.getScrollBars(frmRUTAS) 
         self.listaRutasGUI    = tk.Listbox(frmRUTAS,selectmode=EXTENDED,yscrollcommand=scrollbary.set,xscrollcommand=scrollbarx.set)
@@ -71,7 +81,34 @@ class Principal(tk.Frame):
         self.listaFiltrosGUI.pack(side=LEFT, fill=BOTH, expand=1)
         self.llenarListaFiltros(self.listaFiltrosGUI)
         
+        
+        Label(frmW, text="Ancho(W):").pack(side=LEFT)    
+        Label(frmH, text="Alto (H):    ").pack(side=LEFT)
+        
+        self.strW = StringVar()
+        self.strH = StringVar()
+        self.entryW = tk.Entry(frmW,textvariable=self.strW, justify=tk.CENTER).pack(side=LEFT)
+        self.entryH = tk.Entry(frmH,textvariable=self.strH, justify=tk.CENTER).pack(side=LEFT)
+        
+        Label(frmESCCOL, text="Modo de Color: ").pack(side=LEFT)
+        self.boxVal = StringVar()
+        self.box = ttk.Combobox(frmESCCOL, textvariable=self.boxVal).pack(side=LEFT)
+        
+        Label(frmDEST,text="Nombre de Nuevo Directorio").pack(side=LEFT)
+        self.strDirDest = StringVar()
+        self.entryW = tk.Entry(frmDEST,textvariable=self.strDirDest, justify=tk.CENTER).pack(side=LEFT)
+        
     #-------------------------------------------------------------------------------------------------------------------
+    
+    def RUN_PROCESO(self):
+        tupla = self.listaFiltrosGUI.curselection()
+        for seleccion in tupla:
+            self.listaFiltros.append(self.FILTROS[seleccion])
+        if (not self.listaFiltros):
+            self.listaFiltros = None
+        
+    
+    
     
     def agregarDirectorioClase(self):
         self.optDialogoDir = opciones = {}
@@ -137,7 +174,7 @@ class Principal(tk.Frame):
         else:    
             sbx.config(command=self.xview2)
             sby.config(command=self.yview2)
-
+            
 
     def packScrollBars(self,sbx,sby):
         sbx.pack(fill=X)
@@ -154,6 +191,10 @@ class Principal(tk.Frame):
         
     def xview2(self,*args):
         apply(self.listaClasesGUI.xview, args)
+    
+    
+    
+    
     
     
 ########################################################################        
