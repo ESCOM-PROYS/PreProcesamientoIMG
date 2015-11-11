@@ -26,6 +26,7 @@ class Principal(tk.Frame):
         self.listaDirectorios = []
         self.listaDeClases = []
         self.initUI()
+        self.listaActiva = 0
 
     #-------------------------------------------------------------------------------
     def initUI(self):
@@ -44,29 +45,32 @@ class Principal(tk.Frame):
         frmCLASES.pack(fill = tk.BOTH, side = tk.BOTTOM, expand= tk.TRUE,padx = 5)
         # BUTTONS -------------------------------------------------------     
         button_opt = {'fill': Tkconstants.BOTH, 'padx': 5, 'pady': 5}  
-        ttk.Button(frmPARAM, text='Agregar Nuevo Directorio de Clases', command=self.agregarDirectorioClase).pack(**button_opt)
-        ttk.Button(frmPARAM, text='Agregar Nuevo Archivo de Clases', command=self.agregarArchivoClase).pack(**button_opt)
+        ttk.Button(frmPARAM,  text='Agregar Nuevo Directorio de Clases', command=self.agregarDirectorioClase).pack(**button_opt)
+        ttk.Button(frmPARAM,  text='Agregar Nuevo Archivo de Clases', command=self.agregarArchivoClase).pack(**button_opt)
         ttk.Button(frmEstado, text='INICIAR PROCESAMIENTO',command=self.agregarArchivoClase).pack(**button_opt)
         
-        scrollbary = Scrollbar(frmRUTAS, orient=VERTICAL)
-        scrollbarx = Scrollbar(frmRUTAS, orient=HORIZONTAL)
-        self.listaRutasGUI = tk.Listbox(frmRUTAS,selectmode=EXTENDED,yscrollcommand=scrollbary.set,xscrollcommand=scrollbarx.set)
-        scrollbary.config(command=self.yview)
-        scrollbary.pack(side=RIGHT, fill=Y)
-        scrollbarx.config(command=self.xview)
-        scrollbarx.pack(fill=X)
+        scrollbarx,scrollbary = self.getScrollBars(frmRUTAS) 
+        self.listaRutasGUI    = tk.Listbox(frmRUTAS,selectmode=EXTENDED,yscrollcommand=scrollbary.set,xscrollcommand=scrollbarx.set)
+        self.confScrollbars(scrollbarx, scrollbary,0)
+        self.packScrollBars(scrollbarx,scrollbary)
         self.listaRutasGUI.pack(side=LEFT, fill=BOTH, expand=1)
         
-
+        scrollbarxC,scrollbaryC = self.getScrollBars(frmCLASES) 
+        self.listaClasesGUI    = tk.Listbox(frmCLASES,selectmode=EXTENDED,yscrollcommand=scrollbaryC.set,xscrollcommand=scrollbarxC.set)
+        self.confScrollbars(scrollbarxC, scrollbaryC,1)
+        self.packScrollBars(scrollbarxC,scrollbaryC)
+        self.listaClasesGUI.pack(side=LEFT, fill=BOTH, expand=1)
+        
+        
+    #-------------------------------------------------------------------------------------------------------------------
     
     def agregarDirectorioClase(self):
         self.optDialogoDir = opciones = {}
         opciones['parent'] = self
         opciones['title'] = 'Elija un directorio de Clase'
         directorio = tkFileDialog.askdirectory(**self.optDialogoDir)
-        if(directorio not in self.listaDirectorios and directorio != ''):
-            self.listaDirectorios.append(directorio)
-            self.cargarDirectorio(directorio)
+        print directorio.name
+        self.cargarInfoDirectorio(directorio.name)
     
     
     def agregarArchivoClase(self):
@@ -74,15 +78,18 @@ class Principal(tk.Frame):
         opciones['parent'] = self
         opciones['title'] = 'Elija un Archivo de Rutas'
         archivo = tkFileDialog.askopenfile(**self.optDialogoDir)
-        if(archivo != ''):
+        if(archivo != None and archivo != ''):
             print archivo.name
             self.cargarRutasDesdeArchivo(archivo.name)
 
-                
-    def cargarDirectorio(self, elemento):
-        if(elemento not in self.listaDirectorios):
+
+    def cargarInfoDirectorio(self, elemento):
+        if(elemento not in self.listaDirectorios and elemento != ''):
             self.listaDirectorios.append(elemento)
             self.listaRutasGUI.insert(END, elemento)
+            clase = self.getClaseDesdeRuta(elemento)
+            if(clase): #La clase siempre se inserta en la lista de clases, pero en la lista de la GUI sólo se muestra una vez
+                self.listaClasesGUI.insert(END,clase)
     
 
     def cargarRutasDesdeArchivo(self, archivo):
@@ -90,24 +97,50 @@ class Principal(tk.Frame):
             rutas = archivoClases.readlines()
             for ruta in rutas:
                 if(ruta!='' and ruta!='\n'):
-                    self.cargarDirectorio(ruta)
-                    self.obtenerClase(ruta)
+                    self.cargarInfoDirectorio(ruta)
         archivoClases.close()       
     
     
-    def obtenerClase(self,ruta):
+    def getClaseDesdeRuta(self,ruta):
+        mostrarEnLista = None
         separador = os.path.sep
         clase = ruta.split(separador)[-1]
-        if(clase not in self.listaDeClases):
-            self.listaDeClases.append(clase)
-        
-         
-    def yview(self, *args):
-        apply(self.listaRutasGUI.yview, args)
-
+        clase = clase.lower()
+        if(clase not in self.listaDeClases): #para saber si se mostrará en la lista de la GUI
+            mostrarEnLista = clase
+        self.listaDeClases.append(clase) # La clase Simepre se agrega a la lista @self.listaDeClases
+        return mostrarEnLista
     
-    def xview(self, *args):
+    
+    def getScrollBars(self,frameToStroll):
+        scrollbary = Scrollbar(frameToStroll, orient=VERTICAL)
+        scrollbarx = Scrollbar(frameToStroll, orient=HORIZONTAL)
+        return scrollbarx,scrollbary
+    
+    def confScrollbars(self,sbx,sby,listaActiva):
+        if(listaActiva == 0):
+            sbx.config(command=self.xview)
+            sby.config(command=self.yview)
+        else:    
+            sbx.config(command=self.xview2)
+            sby.config(command=self.yview2)
+
+
+    def packScrollBars(self,sbx,sby):
+        sbx.pack(fill=X)
+        sby.pack(side=RIGHT, fill=Y)
+     
+    def yview(self,*args):
+        apply(self.listaRutasGUI.yview, args)
+  
+    def yview2(self,*args):
+        apply(self.listaClasesGUI.yview, args)
+
+    def xview(self,*args):
         apply(self.listaRutasGUI.xview, args)
+        
+    def xview2(self,*args):
+        apply(self.listaClasesGUI.xview, args)
     
     
 ########################################################################        
