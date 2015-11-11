@@ -10,6 +10,7 @@ import ttk
 import Tkinter as tk
 from Tkinter import *    
 import Tkconstants, tkFileDialog
+import os
 
 
 ########################################################################
@@ -29,30 +30,34 @@ class Principal(tk.Frame):
     #-------------------------------------------------------------------------------
     def initUI(self):
         self.padre.title("PRPEPROCESAMIENTO")
-
-        button_opt = {'fill': Tkconstants.BOTH, 'padx': 5, 'pady': 5}
+        #Frames ---------------------------------------------------------
+        frmGRAL   = ttk.Frame(self.padre)
+        frmEstado = ttk.Frame(frmGRAL)
+        frmPARAM  = ttk.Labelframe(frmGRAL, text = "PARAMETROS")
+        frmRUTAS  = ttk.Labelframe(frmEstado, text = "LISTA DE RUTAS")
+        frmCLASES = ttk.Labelframe(frmEstado, text = "LISTA DE CLASES")
         
-        frmCenter = ttk.Frame(self.padre)
-        frmCenterOeste = ttk.Labelframe(frmCenter, text = "PARAMETROS")
-        frmCenterOeste.pack(fill = tk.BOTH, side = tk.LEFT, expand = tk.TRUE, padx = 5)
-        frmCenterEste = ttk.Labelframe(frmCenter, text = "LISTA DE RUTAS")
-        frmCenterEste.pack(fill = tk.BOTH, side = tk.LEFT, expand = tk.TRUE, padx = 5)
-        frmCenter.pack(fill = tk.BOTH, side = tk.TOP, expand= tk.TRUE)
-        frmCenterEsteBot = ttk.Labelframe(frmCenterEste, text = "LISTA DE CLASES")
-        frmCenterEsteBot.pack(fill = tk.BOTH, side = tk.BOTTOM, expand= tk.TRUE)        
-        ttk.Button(frmCenterOeste, text='Agregar Nuevo Directorio de Clases', command=self.agregarDirectorioClase).pack(**button_opt)
-        ttk.Button(frmCenterOeste, text='Agregar Nuevo Archivo de Clases', command=self.agregarArchivoClase).pack(**button_opt)
+        frmGRAL.pack  (fill = tk.BOTH, side = tk.TOP, expand= tk.TRUE)
+        frmEstado.pack(fill = tk.BOTH, side = tk.RIGHT, expand = tk.TRUE, padx = 5)
+        frmPARAM.pack (fill = tk.BOTH, side = tk.LEFT, expand = tk.TRUE, padx = 5)
+        frmRUTAS.pack (fill = tk.BOTH, side = tk.TOP, expand = tk.TRUE, padx = 5)
+        frmCLASES.pack(fill = tk.BOTH, side = tk.BOTTOM, expand= tk.TRUE,padx = 5)
+        # BUTTONS -------------------------------------------------------     
+        button_opt = {'fill': Tkconstants.BOTH, 'padx': 5, 'pady': 5}  
+        ttk.Button(frmPARAM, text='Agregar Nuevo Directorio de Clases', command=self.agregarDirectorioClase).pack(**button_opt)
+        ttk.Button(frmPARAM, text='Agregar Nuevo Archivo de Clases', command=self.agregarArchivoClase).pack(**button_opt)
+        ttk.Button(frmEstado, text='INICIAR PROCESAMIENTO',command=self.agregarArchivoClase).pack(**button_opt)
         
-        scrollbary = Scrollbar(frmCenterEste, orient=VERTICAL)
-        scrollbarx = Scrollbar(frmCenterEste, orient=HORIZONTAL)
-        self.listaRutasGUI = tk.Listbox(frmCenterEste,selectmode=EXTENDED,yscrollcommand=scrollbary.set,xscrollcommand=scrollbarx.set)
+        scrollbary = Scrollbar(frmRUTAS, orient=VERTICAL)
+        scrollbarx = Scrollbar(frmRUTAS, orient=HORIZONTAL)
+        self.listaRutasGUI = tk.Listbox(frmRUTAS,selectmode=EXTENDED,yscrollcommand=scrollbary.set,xscrollcommand=scrollbarx.set)
         scrollbary.config(command=self.yview)
         scrollbary.pack(side=RIGHT, fill=Y)
         scrollbarx.config(command=self.xview)
         scrollbarx.pack(fill=X)
         self.listaRutasGUI.pack(side=LEFT, fill=BOTH, expand=1)
         
-        
+
     
     def agregarDirectorioClase(self):
         self.optDialogoDir = opciones = {}
@@ -86,9 +91,17 @@ class Principal(tk.Frame):
             for ruta in rutas:
                 if(ruta!='' and ruta!='\n'):
                     self.cargarDirectorio(ruta)
+                    self.obtenerClase(ruta)
         archivoClases.close()       
-
-
+    
+    
+    def obtenerClase(self,ruta):
+        separador = os.path.sep
+        clase = ruta.split(separador)[-1]
+        if(clase not in self.listaDeClases):
+            self.listaDeClases.append(clase)
+        
+         
     def yview(self, *args):
         apply(self.listaRutasGUI.yview, args)
 
