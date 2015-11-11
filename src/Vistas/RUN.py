@@ -5,7 +5,6 @@ Created on 10/11/2015
 @author: Isaac
 '''
 
-
 import ttk              
 import Tkinter as tk
 from   Tkinter import *    
@@ -92,7 +91,9 @@ class Principal(tk.Frame):
         
         Label(frmESCCOL, text="Modo de Color: ").pack(side=LEFT)
         self.boxVal = StringVar()
-        self.box = ttk.Combobox(frmESCCOL, textvariable=self.boxVal).pack(side=LEFT)
+        listaValores = ['1','L','P','RGB']
+        self.box = ttk.Combobox(frmESCCOL, textvariable=self.boxVal,values = listaValores,state="readonly").pack(side=LEFT)
+        
         
         Label(frmDEST,text="Nombre de Nuevo Directorio").pack(side=LEFT)
         self.strDirDest = StringVar()
@@ -192,11 +193,7 @@ class Principal(tk.Frame):
     def xview2(self,*args):
         apply(self.listaClasesGUI.xview, args)
     
-    
-    
-    
-    
-    
+
 ########################################################################        
 if __name__ == '__main__':
     root = tk.Tk()
