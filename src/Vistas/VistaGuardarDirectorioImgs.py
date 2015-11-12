@@ -18,7 +18,7 @@ class VistaGuardarDirectorioImgs(tk.Toplevel):
     '''
     Ventana en la que se ofrece la posibilidad de crear una clase
     '''
-    
+    #----------------------------------------------------------------------
     def __init__(self, master = None):
         '''
         Constructor
@@ -30,7 +30,6 @@ class VistaGuardarDirectorioImgs(tk.Toplevel):
         self.hide()
         
     #----------------------------------------------------------------------
-    
     def initUI(self):
         '''
         Crea y empaqueta los windgets de la ventana, tambien se establecen las propiedades
@@ -38,7 +37,6 @@ class VistaGuardarDirectorioImgs(tk.Toplevel):
         '''
         
         #Opciones para el dialogo de imagenes para abrir un directorio con imagenes de tkinter
-        self.pathDirPrin = ''
         self.optDialogoDir = opciones = {}
         opciones['initialdir'] = expanduser("~")
         opciones['parent'] = self
@@ -101,24 +99,23 @@ class VistaGuardarDirectorioImgs(tk.Toplevel):
         self.strVarNomDirPrincipal.set(self.strVarNomDirPrincipal.get().strip())
         self.strVarPathDirPrin.set(self.strVarPathDirPrin.get().strip())
         
-        if " " in self.strVarNomDirPrincipal.get():
+        if " " in self.strVarNomDirPrincipal.get().lstrip():
             tkMessageBox.showerror("Nombre Directorio Principal Erroneo",
                                     "El Nombre del Directorio Principal no puede contener Espacios")
             return
         
-        self.pathDirPrin = self.strVarPathDirPrin.get()+os.path.sep+self.strVarNomDirPrincipal.get()
-        if os.path.exists(self.pathDirPrin):
+        pathDir = os.path.abspath(self.strVarPathDirPrin.get()+os.path.sep+self.strVarNomDirPrincipal.get().lstrip())
+        if os.path.exists(pathDir):
             respuesta = tkMessageBox.askyesno("Directorio Existente",
-                                  'El directorio '+self.pathDirPrin+' existe. \n Desea limpiar el directorio y crear el directorio de imagenes?')
+                                  'El directorio '+pathDir+' existe. \n Desea limpiar el directorio y crear el directorio de imagenes?')
             if not respuesta:
                 return 
             
+        self.padre.strDirDest.set(pathDir);
+        
         self.hide()
         tkMessageBox.showinfo("Directorio Creado", "El directorio "+self.strVarNomDirPrincipal.get()+" fue creado")
-        
-    
-    def getDirYRuta(self):
-        return self.pathDirPrin 
+         
       
     #----------------------------------------------------------------------
     def hide(self):

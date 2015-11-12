@@ -11,9 +11,8 @@ from   Tkinter import *
 import Tkconstants, tkFileDialog
 import os
 import ImageFilter
-from Tkconstants import TOP
 from Vistas.VistaGuardarDirectorioImgs import VistaGuardarDirectorioImgs
-#from Procesamiento import Procesamiento
+from Procesamiento import Procesamiento
 
 
 ########################################################################
@@ -34,7 +33,7 @@ class Principal(tk.Frame):
         self.FILTROS = [ImageFilter.BLUR,ImageFilter.CONTOUR,ImageFilter.DETAIL,ImageFilter.EDGE_ENHANCE,ImageFilter.EDGE_ENHANCE_MORE,ImageFilter.EMBOSS,ImageFilter.FIND_EDGES,ImageFilter.SMOOTH,ImageFilter.SMOOTH_MORE,ImageFilter.SHARPEN]
         self.listaFiltros = []
         self.initUI()
-        self.pathDirPrin = ''
+        self.pathDir = ''
 
     #-------------------------------------------------------------------------------
     def initUI(self):
@@ -119,9 +118,9 @@ class Principal(tk.Frame):
         print "Color seleccionado: " , color
         print "Dir dest: " , self.strDirDest
         print "Lista clases", self.listaDeClases
-        #Procesamiento(listaDirectorios = self.listaDirectorios , listaClases = self.listaDeClases , 
-         #        listFiltros= self.listaFiltros, modo=color , w=self.strW.get() , h=self.strH.get() , 
-          #       dirDestino = self.strDirDest.get(), nombreCSV='CSV_TRAIN')
+        Procesamiento(listaDirectorios = self.listaDirectorios , listaClases = self.listaDeClases , 
+                listFiltros= self.listaFiltros, modo=color , w=self.strW.get() , h=self.strH.get() , 
+                dirDestino = self.strDirDest.get(), nombreCSV='CSV_TRAIN')
 
         
     def agregarDirectorioClase(self):
@@ -142,9 +141,6 @@ class Principal(tk.Frame):
     #Crear directorio para imágenes procesadas
     def abrirVistaGuardarDirectorioImgs(self):
         self.frmVentanaGuaDirImgs.show()
-        self.frmVentanaGuaDirImgs.waitvar(self.frmVentanaGuaDirImgs.pathDirPrin)
-        self.pathDirPrin = self.frmVentanaGuaDirImgs.getDirYRuta()
-        print "RUTA: ", self.pathDirPrin 
 
     def agregarArchivoClase(self):
         self.optDialogoDir = opciones = {}
