@@ -4,13 +4,14 @@ Created on 10/11/2015
 
 @author: Isaac
 '''
-
 import ttk              
 import Tkinter as tk
 from   Tkinter import *    
 import Tkconstants, tkFileDialog
 import os
 import ImageFilter
+from Vistas.VistaGuardarDirectorioImgs import VistaGuardarDirectorioImgs
+from Procesamiento import Procesamiento
 
 ########################################################################
 class Principal(tk.Frame):
@@ -30,39 +31,47 @@ class Principal(tk.Frame):
         self.FILTROS = [ImageFilter.BLUR,ImageFilter.CONTOUR,ImageFilter.DETAIL,ImageFilter.EDGE_ENHANCE,ImageFilter.EDGE_ENHANCE_MORE,ImageFilter.EMBOSS,ImageFilter.FIND_EDGES,ImageFilter.SMOOTH,ImageFilter.SMOOTH_MORE,ImageFilter.SHARPEN]
         self.listaFiltros = []
         self.initUI()
+        self.pathDir = ''
 
     #-------------------------------------------------------------------------------
     def initUI(self):
-        self.padre.title("PRPEPROCESAMIENTO")
+        self.padre.title("PREPROCESAMIENTO")
         #Frames ---------------------------------------------------------
         frmGRAL   = ttk.Frame(self.padre)
         frmEstado = ttk.Frame(frmGRAL)
         frmPARAM  = ttk.Labelframe(frmGRAL,   text = "PARAMETROS")
         frmRUTAS  = ttk.Labelframe(frmEstado, text = "LISTA DE RUTAS")
         frmCLASES = ttk.Labelframe(frmEstado, text = "LISTA DE CLASES")
-        frmFILTROS = ttk.Labelframe(frmPARAM, text = "Filtros")
-        frmESCCOL = ttk.Labelframe(frmPARAM,  text = "Escala y modo de color")
-        frmDEST =   ttk.Labelframe(frmPARAM,  text = "Destino")
+        frmFILTROS = ttk.Labelframe(frmPARAM, text = "FILTROS")
+        frmESCCOL = ttk.Labelframe(frmPARAM,  text = "ESCALA y MODO DE COLOR")
+        frmDEST =   ttk.Labelframe(frmPARAM,  text = "DESTINO")
         frmW = ttk.Frame(frmESCCOL)
         frmH = ttk.Frame(frmESCCOL)
+        frmDR = ttk.Frame(frmDEST)
+        frmDCSV = ttk.Frame(frmDEST)
+        
+        
+        # BUTTONS -------------------------------------------------------     
+        button_opt = {'fill': Tkconstants.BOTH, 'padx': 5, 'pady': 5,'side':tk.TOP}  
+        ttk.Button(frmPARAM,  text='Agregar Nuevo Directorio de Clases', command=self.agregarDirectorioClase).pack(**button_opt)
+        ttk.Button(frmPARAM,  text='Agregar Nuevo Archivo de Clases', command=self.agregarArchivoClase).pack(**button_opt)
+        ttk.Button(frmEstado, text='INICIAR PROCESAMIENTO',command=self.RUN_PROCESO).pack(**button_opt)
+        ttk.Button(frmDR, text='Ruta...',command=self.abrirVistaGuardarDirectorioImgs).pack(side=RIGHT,fill=BOTH)
+        
         
         frmGRAL.pack  (fill = tk.BOTH, side = tk.TOP, expand= tk.TRUE)
         frmEstado.pack(fill = tk.BOTH, side = tk.RIGHT, expand = tk.TRUE, padx = 5)
         frmPARAM.pack (fill = tk.BOTH, side = tk.LEFT, expand = tk.TRUE, padx = 5)
         frmRUTAS.pack (fill = tk.BOTH, side = tk.TOP, expand = tk.TRUE, padx = 5)
         frmCLASES.pack(fill = tk.BOTH, side = tk.BOTTOM, expand= tk.TRUE,padx = 5)
-        frmESCCOL.pack(fill  = tk.BOTH, side = tk.BOTTOM, expand= tk.TRUE,padx = 5,pady = 10)
         frmFILTROS.pack(fill = tk.BOTH, side = tk.BOTTOM, expand= tk.TRUE,padx = 5)
+        frmESCCOL.pack(fill  = tk.BOTH, side = tk.BOTTOM, expand= tk.TRUE,padx = 5,pady = 10)
         frmW.pack(fill = tk.X,side=tk.TOP,expand=tk.TRUE,padx=5)
         frmH.pack(fill = tk.X,side=tk.TOP,expand=tk.TRUE,padx=5)
-        frmDEST.pack(fill = tk.X, side=tk.BOTTOM, expand=tk.TRUE,padx=5)
+        frmDEST.pack(fill = tk.X, side=tk.TOP, expand=tk.TRUE,padx=5)
+        frmDR.pack(fill = tk.X,side=tk.TOP,expand=tk.TRUE,padx=5)
+        frmDCSV.pack(fill = tk.X,side=tk.TOP,expand=tk.TRUE,padx=5)
         
-        # BUTTONS -------------------------------------------------------     
-        button_opt = {'fill': Tkconstants.BOTH, 'padx': 5, 'pady': 5}  
-        ttk.Button(frmPARAM,  text='Agregar Nuevo Directorio de Clases', command=self.agregarDirectorioClase).pack(**button_opt)
-        ttk.Button(frmPARAM,  text='Agregar Nuevo Archivo de Clases', command=self.agregarArchivoClase).pack(**button_opt)
-        ttk.Button(frmEstado, text='INICIAR PROCESAMIENTO',command=self.RUN_PROCESO).pack(**button_opt)
-        ttk.Button(frmDEST, text='Ruta...',command=self.RUN_PROCESO).pack(side=RIGHT,fill=BOTH)
         
         scrollbarx,scrollbary = self.getScrollBars(frmRUTAS) 
         self.listaRutasGUI    = tk.Listbox(frmRUTAS,selectmode=EXTENDED,yscrollcommand=scrollbary.set,xscrollcommand=scrollbarx.set)
@@ -80,7 +89,6 @@ class Principal(tk.Frame):
         self.listaFiltrosGUI.pack(side=LEFT, fill=BOTH, expand=1)
         self.llenarListaFiltros(self.listaFiltrosGUI)
         
-        
         Label(frmW, text="Ancho(W):").pack(side=LEFT)    
         Label(frmH, text="Alto (H):    ").pack(side=LEFT)
         
@@ -92,37 +100,60 @@ class Principal(tk.Frame):
         Label(frmESCCOL, text="Modo de Color: ").pack(side=LEFT)
         self.boxVal = StringVar()
         listaValores = ['1','L','P','RGB']
-        self.box = ttk.Combobox(frmESCCOL, textvariable=self.boxVal,values = listaValores,state="readonly").pack(side=LEFT)
+        self.boxMColor = ttk.Combobox(frmESCCOL, textvariable=self.boxVal,values = listaValores,state="readonly").pack(side=LEFT)
         
-        
-        Label(frmDEST,text="Nombre de Nuevo Directorio").pack(side=LEFT)
+        Label(frmDR,text="Nombre de Nuevo Directorio").pack(side=LEFT)
         self.strDirDest = StringVar()
-        self.entryW = tk.Entry(frmDEST,textvariable=self.strDirDest, justify=tk.CENTER).pack(side=LEFT)
+        self.entryNDir  = tk.Entry(frmDR,textvariable=self.strDirDest,width=50 ).pack(side=LEFT)
         
+        Label(frmDCSV,text="Nombre Archivo de etiquetas").pack(side=LEFT)
+        self.strCSV = StringVar()
+        self.entryNCSV  = tk.Entry(frmDCSV,textvariable=self.strCSV,width=60).pack(side=LEFT, fill=BOTH)
+        
+        
+        self.frmVentanaGuaDirImgs  = VistaGuardarDirectorioImgs(self)
     #-------------------------------------------------------------------------------------------------------------------
     
     def RUN_PROCESO(self):
-        tupla = self.listaFiltrosGUI.curselection()
-        for seleccion in tupla:
+        tuplaFiltros = self.listaFiltrosGUI.curselection()
+        for seleccion in tuplaFiltros:
             self.listaFiltros.append(self.FILTROS[seleccion])
         if (not self.listaFiltros):
             self.listaFiltros = None
+        color = self.boxVal.get()
+        print "Filtros: ", self.listaFiltros
+        print "Color seleccionado: " , color
+        print "Dir dest: " , self.strDirDest
+        print "Lista clases", self.listaDeClases
+        self.proceso = Procesamiento(listaDirectorios = self.listaDirectorios , listaClases = self.listaDeClases , 
+                listFiltros= self.listaFiltros, modo=color , w=self.strW.get() , h=self.strH.get() , 
+                dirDestino = self.strDirDest.get(), nombreCSV='CSV_TRAIN')
         
-    
-    
-    
+
     def agregarDirectorioClase(self):
         self.optDialogoDir = opciones = {}
         opciones['parent'] = self
         opciones['title'] = 'Elija un directorio de Clase'
         directorio = tkFileDialog.askdirectory(**self.optDialogoDir)
         self.cargarInfoDirectorio(directorio)
+
+
+    def agregarDirectorioSave(self):
+        self.optDialogoDir = opciones = {}
+        opciones['parent'] = self
+        opciones['title'] = 'Elija un destino de Clase'
+        directorio = tkFileDialog.askdirectory(**self.optDialogoDir)
+        self.strDirDest.set(directorio)
     
-    
+    #Crear directorio para imágenes procesadas
+    def abrirVistaGuardarDirectorioImgs(self):
+        self.frmVentanaGuaDirImgs.show()
+        
+
     def agregarArchivoClase(self):
         self.optDialogoDir = opciones = {}
         opciones['parent'] = self
-        opciones['title'] = 'Elija un Archivo de Rutas'
+        opciones['title'] = 'Elegir un Archivo de Rutas'
         archivo = tkFileDialog.askopenfile(**self.optDialogoDir)
         if(archivo != None and archivo != ''):
             print archivo.name
