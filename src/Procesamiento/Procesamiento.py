@@ -157,15 +157,15 @@ class Procesador:
     #Aplica todos los filtros diponibles de PIL en una imagen
    
     
-rutas = ['C:\Users\Isaac\Desktop\gatos','C:\Users\Isaac\Desktop\camaleones','C:\Users\Isaac\Desktop\dogs']
-clases  = ['gatos','camaleones','dogs']
+#rutas = ['C:\Users\Isaac\Desktop\gatos','C:\Users\Isaac\Desktop\camaleones','C:\Users\Isaac\Desktop\dogs']
+#clases  = ['gatos','camaleones','dogs']
 #listaFiltros = [ImageFilter.BLUR]
 #listaFiltros.append(ImageFilter.CONTOUR)
-listaFiltros = []
-destino = 'C:\Users\Isaac\Desktop\Otro\\'
-modo = None
-proceso = Procesador(rutas,clases,listaFiltros,modo,32, 32, destino, 'Ent1.csv')
-proceso.RUN()
+#listaFiltros = []
+#destino = 'C:\Users\Isaac\Desktop\Otro\\'
+#modo = 'RGB;L'
+#proceso = Procesador(rutas,clases,listaFiltros,modo,32, 32, destino, 'Ent1.csv')
+#proceso.RUN()
 
 
 
