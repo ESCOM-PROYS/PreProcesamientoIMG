@@ -10,7 +10,7 @@ import ImageFilter
 import traceback
 from os.path import expanduser
 
-class Procesador:
+class Procesamiento:
     
     def __init__(self, listaDirectorios , listaClases , 
                  listFiltros=None , modo=None , w=32 , h=32 , 
@@ -157,6 +157,7 @@ class Procesador:
     #Aplica todos los filtros diponibles de PIL en una imagen
    
     
+
 #rutas = ['C:\Users\Isaac\Desktop\gatos','C:\Users\Isaac\Desktop\camaleones','C:\Users\Isaac\Desktop\dogs']
 #clases  = ['gatos','camaleones','dogs']
 #listaFiltros = [ImageFilter.BLUR]

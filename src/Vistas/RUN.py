@@ -12,6 +12,8 @@ import os
 import ImageFilter
 from Vistas.VistaGuardarDirectorioImgs import VistaGuardarDirectorioImgs
 from Procesamiento import Procesamiento
+import csv
+
 
 ########################################################################
 class Principal(tk.Frame):
@@ -47,6 +49,7 @@ class Principal(tk.Frame):
         frmDEST =   ttk.Labelframe(frmPARAM,  text = "DESTINO")
         frmW = ttk.Frame(frmESCCOL)
         frmH = ttk.Frame(frmESCCOL)
+
         frmDR = ttk.Frame(frmDEST)
         frmDCSV = ttk.Frame(frmDEST)
         
@@ -57,7 +60,8 @@ class Principal(tk.Frame):
         ttk.Button(frmPARAM,  text='Agregar Nuevo Archivo de Clases', command=self.agregarArchivoClase).pack(**button_opt)
         ttk.Button(frmEstado, text='INICIAR PROCESAMIENTO',command=self.RUN_PROCESO).pack(**button_opt)
         ttk.Button(frmDR, text='Ruta...',command=self.abrirVistaGuardarDirectorioImgs).pack(side=RIGHT,fill=BOTH)
-        
+
+     
         
         frmGRAL.pack  (fill = tk.BOTH, side = tk.TOP, expand= tk.TRUE)
         frmEstado.pack(fill = tk.BOTH, side = tk.RIGHT, expand = tk.TRUE, padx = 5)
@@ -74,18 +78,18 @@ class Principal(tk.Frame):
         
         
         scrollbarx,scrollbary = self.getScrollBars(frmRUTAS) 
-        self.listaRutasGUI    = tk.Listbox(frmRUTAS,selectmode=EXTENDED,yscrollcommand=scrollbary.set,xscrollcommand=scrollbarx.set)
+        self.listaRutasGUI    = tk.Listbox(frmRUTAS,yscrollcommand=scrollbary.set,xscrollcommand=scrollbarx.set)
         self.confScrollbars(scrollbarx, scrollbary,0)
         self.packScrollBars(scrollbarx,scrollbary)
         self.listaRutasGUI.pack(side=LEFT, fill=BOTH, expand=1)
         
         scrollbarxC,scrollbaryC = self.getScrollBars(frmCLASES) 
-        self.listaClasesGUI    = tk.Listbox(frmCLASES,selectmode=EXTENDED,yscrollcommand=scrollbaryC.set,xscrollcommand=scrollbarxC.set)
+        self.listaClasesGUI    = tk.Listbox(frmCLASES,yscrollcommand=scrollbaryC.set,xscrollcommand=scrollbarxC.set)
         self.confScrollbars(scrollbarxC, scrollbaryC,1)
         self.packScrollBars(scrollbarxC,scrollbaryC)
         self.listaClasesGUI.pack(side=LEFT, fill=BOTH, expand=1)
         
-        self.listaFiltrosGUI = tk.Listbox(frmFILTROS,selectmode=EXTENDED,yscrollcommand=scrollbaryC.set,xscrollcommand=scrollbarxC.set)
+        self.listaFiltrosGUI = tk.Listbox(frmFILTROS,selectmode=EXTENDED,exportselection=0,yscrollcommand=scrollbaryC.set,xscrollcommand=scrollbarxC.set)
         self.listaFiltrosGUI.pack(side=LEFT, fill=BOTH, expand=1)
         self.llenarListaFiltros(self.listaFiltrosGUI)
         
@@ -100,18 +104,19 @@ class Principal(tk.Frame):
         Label(frmESCCOL, text="Modo de Color: ").pack(side=LEFT)
         self.boxVal = StringVar()
         listaValores = ['1','L','P','RGB']
-        self.boxMColor = ttk.Combobox(frmESCCOL, textvariable=self.boxVal,values = listaValores,state="readonly").pack(side=LEFT)
+        self.boxMColor = ttk.Combobox(frmESCCOL, textvariable=self.boxVal, values = listaValores, state="readonly").pack(side=LEFT)
         
-        Label(frmDR,text="Nombre de Nuevo Directorio").pack(side=LEFT)
+
+        Label(frmDR,text="Nombre de Nuevo Directorio").pack(side=LEFT)
+
         self.strDirDest = StringVar()
-        self.entryNDir  = tk.Entry(frmDR,textvariable=self.strDirDest,width=50 ).pack(side=LEFT)
-        
+        self.entryNDir  = tk.Entry(frmDR,textvariable=self.strDirDest,width=50 ).pack(side=LEFT)
         Label(frmDCSV,text="Nombre Archivo de etiquetas").pack(side=LEFT)
         self.strCSV = StringVar()
         self.entryNCSV  = tk.Entry(frmDCSV,textvariable=self.strCSV,width=60).pack(side=LEFT, fill=BOTH)
         
-        
         self.frmVentanaGuaDirImgs  = VistaGuardarDirectorioImgs(self)
+        
     #-------------------------------------------------------------------------------------------------------------------
     
     def RUN_PROCESO(self):
@@ -121,20 +126,32 @@ class Principal(tk.Frame):
         if (not self.listaFiltros):
             self.listaFiltros = None
         color = self.boxVal.get()
-        print "Filtros: ", self.listaFiltros
-        print "Color seleccionado: " , color
-        print "Dir dest: " , self.strDirDest
-        print "Lista clases", self.listaDeClases
-        self.proceso = Procesamiento(listaDirectorios = self.listaDirectorios , listaClases = self.listaDeClases , 
-                listFiltros= self.listaFiltros, modo=color , w=self.strW.get() , h=self.strH.get() , 
-                dirDestino = self.strDirDest.get(), nombreCSV='CSV_TRAIN')
         
-
+        destino = self.strDirDest.get()
+        ncsv = self.strCSV.get()
+        w = self.strW.get()
+        h = self.strH.get()
+        directorios = self.listaDirectorios
+        clases = self.listaDeClases
+        filtros = self.listaFiltros
+        
+        print "CSV: ", ncsv
+        print "Ancho: ", w
+        print "Alto: ", h
+        print "Color seleccionado: " , color
+        print "Lista clases", clases
+        print "Filtros: ", filtros
+        
+        proceso = Procesamiento.Procesamiento(directorios,clases,filtros, color ,int(w) , int(h) ,destino+os.path.sep, ncsv)
+        proceso.RUN()
+        
+        
     def agregarDirectorioClase(self):
         self.optDialogoDir = opciones = {}
         opciones['parent'] = self
         opciones['title'] = 'Elija un directorio de Clase'
         directorio = tkFileDialog.askdirectory(**self.optDialogoDir)
+        directorio = os.path.abspath(directorio)
         self.cargarInfoDirectorio(directorio)
 
 
@@ -148,6 +165,8 @@ class Principal(tk.Frame):
     #Crear directorio para imágenes procesadas
     def abrirVistaGuardarDirectorioImgs(self):
         self.frmVentanaGuaDirImgs.show()
+        self.update()
+        
         
 
     def agregarArchivoClase(self):

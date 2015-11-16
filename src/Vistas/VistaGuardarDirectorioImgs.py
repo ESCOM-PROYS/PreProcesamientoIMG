@@ -1,3 +1,4 @@
+# -*- coding: utf8 -*-
 '''
 Created on 18/09/2015
 @author: ivan
@@ -24,7 +25,7 @@ class VistaGuardarDirectorioImgs(tk.Toplevel):
         '''
         tk.Toplevel.__init__(self, master)
         self.padre = master
-        self.title("Elegir Destino")
+        self.title("Guarda Nombre Del Directorio Principal")
         self.initUI()
         self.hide()
         
@@ -109,11 +110,11 @@ class VistaGuardarDirectorioImgs(tk.Toplevel):
                                   'El directorio '+pathDir+' existe. \n Desea limpiar el directorio y crear el directorio de imagenes?')
             if not respuesta:
                 return 
-            
+
         self.padre.strDirDest.set(pathDir);
-        
+        tkMessageBox.showinfo("Directorio obtenido", "Las im�genes se almacenarán en el directorio "+self.strVarNomDirPrincipal.get())
         self.hide()
-        tkMessageBox.showinfo("Directorio Creado", "El directorio "+self.strVarNomDirPrincipal.get()+" fue creado")
+        #self.destroy()
          
       
     #----------------------------------------------------------------------
@@ -146,3 +147,5 @@ if __name__ == "__main__":
     app = SampleApp()
     app.mainloop()
         
+        
+    
