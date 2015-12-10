@@ -59,7 +59,7 @@ class Principal(tk.Frame):
         ttk.Button(frmPARAM,  text='Agregar Nuevo Directorio de Clases', command=self.agregarDirectorioClase).pack(**button_opt)
         ttk.Button(frmPARAM,  text='Agregar Nuevo Archivo de Clases', command=self.agregarArchivoClase).pack(**button_opt)
         ttk.Button(frmEstado, text='INICIAR PROCESAMIENTO',command=self.RUN_PROCESO).pack(**button_opt)
-        ttk.Button(frmDR, text='Ruta...',command=self.abrirVistaGuardarDirectorioImgs).pack(side=RIGHT,fill=BOTH)
+        ttk.Button(frmDR, text='Ruta...',command=self.vistaDirectorioDest).pack(side=RIGHT,fill=BOTH)
 
      
         
@@ -152,6 +152,7 @@ class Principal(tk.Frame):
         opciones['title'] = 'Elija un directorio de Clase'
         directorio = tkFileDialog.askdirectory(**self.optDialogoDir)
         directorio = os.path.abspath(directorio)
+        directorio = directorio + os.path.sep
         self.cargarInfoDirectorio(directorio)
 
 
@@ -163,7 +164,7 @@ class Principal(tk.Frame):
         self.strDirDest.set(directorio)
     
     #Crear directorio para imágenes procesadas
-    def abrirVistaGuardarDirectorioImgs(self):
+    def vistaDirectorioDest(self):
         self.frmVentanaGuaDirImgs.show()
         self.update()
         
@@ -200,7 +201,7 @@ class Principal(tk.Frame):
     def getClaseDesdeRuta(self,ruta):
         mostrarEnLista = None
         separador = os.path.sep
-        clase = ruta.split(separador)[-1]
+        clase = ruta.split(separador)[-2]
         clase = clase.lower()
         if(clase not in self.listaDeClases): #para saber si se mostrará en la lista de la GUI
             mostrarEnLista = clase

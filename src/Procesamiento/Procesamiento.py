@@ -7,6 +7,7 @@ import os
 import numpy
 import Image
 import ImageFilter
+import ImageOps
 import traceback
 from os.path import expanduser
 
@@ -74,6 +75,7 @@ class Procesamiento:
     def getZIPListasDeRutas(self,listaDirectorios):
         gruposIMG = []
         for directorio in listaDirectorios:
+            directorio = directorio.replace("\n", "")
             listaIMG = []
             for img in os.listdir(directorio):
                 if(img.endswith("png") or img.endswith("jpg") or img.endswith("JPG") or img.endswith("PNG") or img.endswith("JPEG") or img.endswith("jpeg") ):
@@ -148,13 +150,18 @@ class Procesamiento:
             raise e
         return imagen
     
+    def invertirColor(self,imagen):
+        return ImageOps.invert(imagen)
+    
+    
     def guardarImagen(self, dirDestino, imagen, nombre):
         try:
+            #imagen = self.invertirColor(imagen) #para prueba
             imagen.save(dirDestino+str(nombre)+".png", "PNG")
         except IOError:
             print 'ERROR: No fue posible crear la imagen'
     
-    #Aplica todos los filtros diponibles de PIL en una imagen
+    
    
     
 
